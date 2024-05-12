@@ -1,3 +1,12 @@
+<p align="center">
+  <img src="https://github.com/AdvanceFTeam/Script_Searcher_Discord_Bot/assets/116656099/bdddc970-5321-49c1-929f-89f9a72fab9c" alt="neuro_dancing" width="250" height="250">
+</p>
+
+<p align="center">
+  <a href="https://discord.gg/jUKAqr5TZF"><img src="https://img.shields.io/badge/Join-Discord-7289DA?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
+</p> 
+
+
 ---
 
 # Discord Script Searcher Bot
@@ -42,12 +51,16 @@ This Discord bot allows users to search for scripts using the `!search` command 
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or submit pull requests to improve the bot.
+Contributions are welcome. Feel free to open issues or submit pull requests to improve the bot.
 
 ## License
 
-This project is licensed under the MIT License - meaning you can use it for free
+This project is licensed under the MIT License - meaning you can feel free to customize it further to match your bot's features and specifications
 
 ---
 
-Feel free to customize it further to match your bot's features and specifications. Let us know if you need any more assistance.
+Let us know if you need any more assistance.
+
+<p align="center">
+  <a href="https://discord.gg/jUKAqr5TZF"><img src="https://img.shields.io/badge/Join-Discord-7289DA?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
+</p> 
