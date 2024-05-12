@@ -30,7 +30,7 @@ async def search(ctx, query=None, mode='free'):
     if query is None:
         initial_embed = discord.Embed(
             title="🔍 Script Search",
-            description="Use the `!search` command followed by your query to search for scripts. You can also specify the search mode (default is 'free').\nModes: 'free', 'paid'\nFor example: `!search {my_script} paid`\nPlease provide a query to get started",
+            description="Use the `!search` command followed by your query to search for scripts. You can also specify the search mode (default is 'free').\nModes: 'free', 'paid'\nFor example: `!search arsenal paid`\nPlease provide a query to get started",
             color=0x3498db
         )
         await ctx.send(embed=initial_embed)
