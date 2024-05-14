@@ -49,6 +49,11 @@ This Discord bot allows users to search for scripts using the `!search` command 
 - validators
 - dotenv
 
+## Replit
+Wanna do the easy way to deploy your discord bot then heres replit:
+
+[![Run on Replit](https://replit.com/badge/github/AdvanceFTeam/Script_Searcher_Discord_Bot)](https://replit.com/@YellowGreg/ss-V12?v=1)
+
 ## Contributing
 
 Contributions are welcome. Feel free to open issues or submit pull requests to improve the bot.
