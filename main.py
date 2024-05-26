@@ -41,6 +41,7 @@ async def on_ready():
 
 # Prefix command
 @bot.command()
+@commands.cooldown(1, 10, commands.BucketType.user)
 async def search(ctx, query=None, mode='free'):
     await execute_search(ctx, query, mode, prefix=True)
 
@@ -59,7 +60,7 @@ async def slash_search(interaction: discord.Interaction,
 async def execute_search(ctx, query, mode, prefix):
     user_id = ctx.author.id
     if user_id in bot.active_searches:
-        message = await ctx.send("You already have an active search running. Please wait for the 1st command to stop running.")
+        message = await ctx.send("You already have an active search running. Please wait for the first command to complete.")
         await asyncio.sleep(random.randint(5, 10))
         await message.delete()
         return
@@ -160,24 +161,19 @@ def create_embed(script, page, total_pages):
     is_patched = script.get("isPatched", False)
     created_at = script["createdAt"]
     updated_at = script["updatedAt"]
-    game_image_url = "https://scriptblox.com" + script["game"].get(
-        "imageUrl", "")
+    game_image_url = "https://scriptblox.com" + script["game"].get("imageUrl", "")
 
     paid_or_free = "**Free** 💰" if script_type == "free" else "**Paid** 💲"
     views_emoji = "**👀**"
     verified_emoji = "**Verified** ✅" if verified else "**Not Verified** ❌"
     key_emoji = "**Key** 🔑" if has_key else "**No Key** ❌"
 
-    if key_link:
-        key_text = f"[**Key Link**]({key_link})"
-    else:
-        key_text = key_emoji
-
+    key_text = f"[**Key Link**]({key_link})" if key_link else key_emoji
     is_patched_emoji = "**Patched** ✅" if is_patched else "**Not Patched** ❌"
 
-    truncated_script_content = (script_content[:max_content_length - 3] +
-                                "..." if len(script_content)
-                                > max_content_length else script_content)
+    truncated_script_content = (script_content[:max_content_length - 3] + "..."
+                                if len(script_content) > max_content_length
+                                else script_content)
 
     field_value = (
         f"**Game**: [{game_name}](https://www.roblox.com/games/{game_id})\n"
@@ -197,20 +193,17 @@ def create_embed(script, page, total_pages):
             embed.set_thumbnail(url=game_image_url)
         else:
             embed.set_thumbnail(
-                url=
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s"
+                url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s"
             )
     except Exception as e:
         print(f"Error setting thumbnail URL: {e}")
         embed.set_thumbnail(
-            url=
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s"
+            url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s"
         )
 
     embed.set_footer(
         text=f" Made by AdvanceFalling Team | Page {page}/{total_pages}",
-        icon_url=
-        "https://i.pinimg.com/564x/7e/ed/10/7eed10f9bef56d535f4e610d48d1a06b.jpg"
+        icon_url="https://i.pinimg.com/564x/7e/ed/10/7eed10f9bef56d535f4e610d48d1a06b.jpg"
     )
 
     return embed
