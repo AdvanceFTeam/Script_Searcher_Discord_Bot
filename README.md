@@ -6,16 +6,15 @@
   <a href="https://discord.gg/jUKAqr5TZF"><img src="https://img.shields.io/badge/Join-Discord-7289DA?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
 </p> 
 
-
 ---
 
 # Discord Script Searcher Bot
 
-This Discord bot allows users to search for scripts using the `!search` command followed by a query. Users can specify the search mode as `free` or `paid`. The bot retrieves script information from the [ScriptBlox API](https://github.com/DocsGuy/Unoffical-Scriptblox-api-docs) and displays the results in an embed format.
+This Discord bot allows users to search for scripts using the `!search` command or slash command `/search` followed by a query. Users can specify the search mode as `free` or `paid`. The bot retrieves script information from the [ScriptBlox API](https://github.com/DocsGuy/Unoffical-Scriptblox-api-docs) and displays the results.
 
 ## Features
 
-- Search for scripts using the `!search` command.
+- Search for scripts using the `!search` command or slash command `/search`.
 - Specify search mode as 'free' or 'paid'.
 - View script details in an embed format.
 - Navigate through search results using reaction buttons.
@@ -24,7 +23,7 @@ This Discord bot allows users to search for scripts using the `!search` command 
 ## How to Use
 
 1. Invite the bot to your Discord server.
-2. Use the `!search` command followed by your query to search for scripts.
+2. Use the `!search` command or slash command `/search` followed by your query to search for scripts.
 3. Specify the search mode (optional). Default mode is 'free'.
 4. Navigate through search results using reaction buttons (`⬅️` and `➡️`).
 5. Click on the reaction buttons to go to the previous or next page of search results.
@@ -32,7 +31,8 @@ This Discord bot allows users to search for scripts using the `!search` command 
 
 ## Commands
 
-- `!search <query> [mode]`: Search for scripts based on the provided query. Optionally specify the search mode as 'free' or 'paid'. Example: `!search arsenal paid`.
+- `!search <query> [mode]`: Search for scripts based on the provided query using the prefix. Example: `!search arsenal paid`.
+- `/search <query> [mode]`: Search for scripts based on the provided query using the slash command. Example: `/search arsenal paid`.
 
 ## Installation
 
@@ -60,7 +60,8 @@ Contributions are welcome. Feel free to open issues or submit pull requests to i
 
 ## License
 
-This project is licensed under the MIT License - meaning you can feel free to customize it further to match your bot's features and specifications
+This project is licensed under the MIT License - meaning you can feel free to customize it further to match your bot's features and specifications.
+NOTE: Just give a little credit to us just for support that's all.
 
 ---
 
