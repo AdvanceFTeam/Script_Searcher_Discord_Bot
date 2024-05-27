@@ -61,7 +61,7 @@ Contributions are welcome. Feel free to open issues or submit pull requests to i
 ## License
 
 This project is licensed under the MIT License - meaning you can feel free to customize it further to match your bot's features and specifications.
-NOTE: Just give a little credit to us just for support that's all.
+- NOTE: Just give a little credit to us just for support that's all.
 
 ---
 
