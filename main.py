@@ -1,3 +1,5 @@
+# Version 1.4
+
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -44,7 +46,7 @@ async def search(ctx, query=None, mode='free'):
 @app_commands.describe(query="The search query",
                        mode="Search mode ('free' or 'paid')")
 async def slash_search(interaction: discord.Interaction,
-                       query: str = None,
+                       query: str = None, # you can have a empty string if you want it wont cause any error but wont show the instruction for the search, or leave it default as a None Value
                        mode: str = 'free'):
     ctx = await bot.get_context(interaction)
     await execute_search(ctx, query, mode, prefix=False)
@@ -179,7 +181,7 @@ def create_embed(script, page, total_pages):
 
     embed.set_footer(text=f"Made by AdvanceFalling Team | Page {page}/{total_pages}", 
                      icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg")
-    
+
     return embed
 
 def set_image_or_thumbnail(embed, url):
@@ -191,8 +193,8 @@ def set_image_or_thumbnail(embed, url):
     except Exception as e:
         print(f"Error setting image URL: {e}")
         embed.set_image(url="https://c.tenor.com/jnINmQlMNbsAAAAC/tenor.gif")
-        
-        
+
+
     ''' Old Code you can use: if you want the image or thumbnail to be smaller
     try:
         if game_image_url and validators.url(game_image_url):
@@ -204,4 +206,7 @@ def set_image_or_thumbnail(embed, url):
         embed.set_thumbnail(url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s")
     '''
 
-bot.run(TOKEN)
+if TOKEN is not None:
+    bot.run(TOKEN)
+else:
+    print("Error: Token is None. Please set a valid BOT_TOKEN in your environment.")
