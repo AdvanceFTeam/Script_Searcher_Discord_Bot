@@ -1,4 +1,5 @@
-# Version 1.4
+# Last Updated: 2024-06-06
+# Version: 1.5
 
 import discord
 from discord.ext import commands
@@ -9,6 +10,9 @@ import asyncio
 import random
 from dotenv import load_dotenv
 import validators
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+import pytz
 
 load_dotenv()
 
@@ -55,7 +59,7 @@ async def execute_search(ctx, query, mode, prefix):
     user_id = ctx.author.id
     try:
         if user_id in bot.active_searches:
-            message = await ctx.send("You already have an active search running. Please wait for the first command to complete.")
+            message = await ctx.send("You already have an active search running. Please wait for the first command to be complete.")
             await asyncio.sleep(random.randint(5, 10))
             await message.delete()
             return
@@ -91,7 +95,13 @@ async def execute_search(ctx, query, mode, prefix):
             scripts = data["result"]["scripts"]
 
             if not scripts:
-                await ctx.send("No scripts found!")
+                error_embed = discord.Embed(
+                    title="No Scripts Found",
+                    description=f"No scripts found for: `{query}`",
+                    color=0xff0000
+                )
+                error_embed.set_image(url="https://w0.peakpx.com/wallpaper/346/996/HD-wallpaper-love-live-sunshine-404-error-love-live-sunshine-anime-girl-anime.jpg")
+                await ctx.send(embed=error_embed)
                 del bot.active_searches[user_id]
                 return
 
@@ -99,7 +109,13 @@ async def execute_search(ctx, query, mode, prefix):
 
             await display_scripts(ctx, message, scripts, page, data["result"]["totalPages"], prefix)
         else:
-            await ctx.send("No scripts found!")
+            error_embed = discord.Embed(
+                title="No Scripts Found",
+                description=f"No scripts found for: `{query}`",
+                color=0xff0000
+            )
+            error_embed.set_image(url="https://w0.peakpx.com/wallpaper/346/996/HD-wallpaper-love-live-sunshine-404-error-love-live-sunshine-anime-girl-anime.jpg")
+            await ctx.send(embed=error_embed)
     except requests.RequestException as e:
         await ctx.send(f"An error occurred: {e}")
     except KeyError as ke:
@@ -107,7 +123,6 @@ async def execute_search(ctx, query, mode, prefix):
     finally:
         if user_id in bot.active_searches:
             del bot.active_searches[user_id]
-
 
 async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
     while True:
@@ -143,6 +158,27 @@ async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
             break
 
 def create_embed(script, page, total_pages):
+    def format_datetime(dt_str):
+        dt = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=pytz.utc)
+        now = datetime.utcnow().replace(tzinfo=pytz.utc)
+        delta = relativedelta(now, dt)
+        
+        if delta.years > 0:
+            time_ago = f"{delta.years} years ago"
+        elif delta.months > 0:
+            time_ago = f"{delta.months} months ago"
+        elif delta.days > 0:
+            time_ago = f"{delta.days} days ago"
+        elif delta.hours > 0:
+            time_ago = f"{delta.hours} hours ago"
+        elif delta.minutes > 0:
+            time_ago = f"{delta.minutes} minutes ago"
+        else:
+            time_ago = "just now"
+        
+        formatted_date = dt.strftime("%m/%d/%Y | %I:%M:%S %p")
+        return f"{time_ago} | {formatted_date}"
+    
     game_name = script["game"]["name"]
     game_id = script["game"]["gameId"]
     title = script["title"]
@@ -154,9 +190,10 @@ def create_embed(script, page, total_pages):
     key_link = script.get("keyLink", "")
     is_patched = script.get("isPatched", False)
     is_universal = script.get("isUniversal", False)
-    created_at = script["createdAt"]
-    updated_at = script["updatedAt"]
+    created_at = format_datetime(script["createdAt"])
+    updated_at = format_datetime(script["updatedAt"])
     game_image_url = "https://scriptblox.com" + script["game"].get("imageUrl", "")
+    slug = script["slug"]
 
     paid_or_free = "Free" if script_type == "free" else "💲 Paid"
     verified_status = "✅ Verified" if verified else "❌ Not Verified"
@@ -169,13 +206,14 @@ def create_embed(script, page, total_pages):
 
     embed.add_field(name="Game", value=f"[{game_name}](https://www.roblox.com/games/{game_id})", inline=True)
     embed.add_field(name="Verified", value=verified_status, inline=True)
-    embed.add_field(name="Script Type", value=paid_or_free, inline=True)
+    embed.add_field(name="ScriptType", value=paid_or_free, inline=True)
     embed.add_field(name="Universal", value=universal_status, inline=True)
     embed.add_field(name="Views", value=f"👁️ {views}", inline=True)
     embed.add_field(name="Key", value=key_status, inline=True)
     embed.add_field(name="Patched", value=patched_status, inline=True)
-    embed.add_field(name="Script Content", value=f"```lua\n{truncated_script_content}\n```", inline=False)
-    embed.add_field(name="", value=f"**Created At:** {created_at}\n**Updated At:** {updated_at}", inline=False)
+    embed.add_field(name="Links", value=f"[Raw Script](https://rawscripts.net/raw/{slug}) - [Script Page](https://scriptblox.com/script/{slug})", inline=False)
+    embed.add_field(name="The Script", value=f"```lua\n{truncated_script_content}\n```", inline=False)
+    embed.add_field(name="Timestamps", value=f"**Created At:** {created_at}\n**Updated At:** {updated_at}", inline=False)
 
     set_image_or_thumbnail(embed, game_image_url)
 
@@ -194,8 +232,7 @@ def set_image_or_thumbnail(embed, url):
         print(f"Error setting image URL: {e}")
         embed.set_image(url="https://c.tenor.com/jnINmQlMNbsAAAAC/tenor.gif")
 
-
-    ''' Old Code you can use: if you want the image or thumbnail to be smaller
+''' Old Code you can use: if you want the image or thumbnail to be smaller
     try:
         if game_image_url and validators.url(game_image_url):
             embed.set_thumbnail(url=game_image_url)
