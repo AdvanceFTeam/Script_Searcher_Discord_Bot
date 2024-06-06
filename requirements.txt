@@ -3,3 +3,5 @@ requests
 python-dotenv
 validators
 python-dateutil
+fuzzywuzzy
+python-Levenshtein
