@@ -1,4 +1,5 @@
 discord.py
 requests
-validators
 python-dotenv
+validators
+python-dateutil
