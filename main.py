@@ -126,12 +126,12 @@ async def execute_search(ctx, query, mode, prefix):
             del bot.active_searches[user_id]
 
 async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
-    print(f"Total scripts: {len(scripts)}")
-    for i, script in enumerate(scripts):
-        print(f"Scripts {i + 1}: {script['title']}")
+    #print(f"Total scripts: {len(scripts)}")
+    #for i, script in enumerate(scripts):
+    #    print(f"Scripts {i + 1}: {script['title']}")
         
-    print("Current page:", page)
-    print("Total pages:", total_pages)
+    #print("Current page:", page)
+    #print("Total pages:", total_pages)
     
     while True:
         embed = create_embed(scripts[page - 1], page, total_pages)
