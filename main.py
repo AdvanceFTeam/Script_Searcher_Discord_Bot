@@ -1,5 +1,5 @@
-# Last Updated: 2024-06-06
-# Version: 1.5
+# Last Updated: 2024-06-07
+# Version: 1.6
 
 import discord
 from discord.ext import commands
@@ -85,14 +85,15 @@ async def execute_search(ctx, query, mode, prefix):
             return
 
         page = 1
-        api_url = f"https://scriptblox.com/api/script/search?q={query}&mode={mode}&page={page}"
+        scriptblox_api_url = f"https://scriptblox.com/api/script/search?q={query}&mode={mode}&page={page}"
+       # rscripts_api_url = f"https://rscripts.net/api/scripts?" <- will implent this later
 
-        response = requests.get(api_url)
-        response.raise_for_status()
-        data = response.json()
+        scriptblox_response = requests.get(scriptblox_api_url)
+        scriptblox_response.raise_for_status()
+        scriptblox_data = scriptblox_response.json()
 
-        if "result" in data and "scripts" in data["result"]:
-            scripts = data["result"]["scripts"]
+        if "result" in scriptblox_data and "scripts" in scriptblox_data["result"]:
+            scripts = scriptblox_data["result"]["scripts"]
 
             if not scripts:
                 error_embed = discord.Embed(
@@ -107,7 +108,7 @@ async def execute_search(ctx, query, mode, prefix):
 
             message = await ctx.send("Fetching data...")
 
-            await display_scripts(ctx, message, scripts, page, data["result"]["totalPages"], prefix)
+            await display_scripts(ctx, message, scripts, page, scriptblox_data["result"]["totalPages"], prefix)
         else:
             error_embed = discord.Embed(
                 title="No Scripts Found",
@@ -125,6 +126,13 @@ async def execute_search(ctx, query, mode, prefix):
             del bot.active_searches[user_id]
 
 async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
+    print(f"Total scripts: {len(scripts)}")
+    for i, script in enumerate(scripts):
+        print(f"Scripts {i + 1}: {script['title']}")
+        
+    print("Current page:", page)
+    print("Total pages:", total_pages)
+    
     while True:
         embed = create_embed(scripts[page - 1], page, total_pages)
         await message.edit(embed=embed, content=None)
@@ -217,7 +225,7 @@ def create_embed(script, page, total_pages):
 
     set_image_or_thumbnail(embed, game_image_url)
 
-    embed.set_footer(text=f"Made by AdvanceFalling Team | Page {page}/{total_pages}", 
+    embed.set_footer(text=f"Made by AdvanceFalling Team | Page {page}/{total_pages} | Powered by Scriptblox", 
                      icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg")
 
     return embed
