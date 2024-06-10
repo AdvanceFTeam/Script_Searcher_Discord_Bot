@@ -1,9 +1,14 @@
-# Last Updated: 2024-06-07
-# Version: 1.6
+# Last Updated: 2024-06-10
+# Version: 1.7
 
 import discord
 from discord.ext import commands
-from discord import app_commands
+# dont ask why I needed this (i had problems ok :<)
+try:
+    from discord import app_commands
+except ImportError:
+    raise ImportError("make sure you have the correct version of discord.py installed with `app_commands` support. Run `pip install --upgrade discord.py`.")
+
 import requests
 import os
 import asyncio
@@ -40,7 +45,7 @@ max_content_length = 200
 async def on_ready():
     activity = discord.Game(name="Script Searcher | !search and /search")
     await bot.change_presence(activity=activity)
-    print("Bot is ready 🤖")
+    print(f"Bot is ready 🤖 | Serving in {len(bot.guilds)} servers")
 
 @bot.command()
 async def search(ctx, query=None, mode='free'):
@@ -86,7 +91,6 @@ async def execute_search(ctx, query, mode, prefix):
 
         page = 1
         scriptblox_api_url = f"https://scriptblox.com/api/script/search?q={query}&mode={mode}&page={page}"
-       # rscripts_api_url = f"https://rscripts.net/api/scripts?" <- will implent this later
 
         scriptblox_response = requests.get(scriptblox_api_url)
         scriptblox_response.raise_for_status()
@@ -126,35 +130,31 @@ async def execute_search(ctx, query, mode, prefix):
             del bot.active_searches[user_id]
 
 async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
-    #print(f"Total scripts: {len(scripts)}")
-    #for i, script in enumerate(scripts):
-    #    print(f"Scripts {i + 1}: {script['title']}")
-        
-    #print("Current page:", page)
-    #print("Total pages:", total_pages)
-    
     while True:
         embed = create_embed(scripts[page - 1], page, total_pages)
-        await message.edit(embed=embed, content=None)
 
-        await message.clear_reactions()
-
+        view = discord.ui.View()
+        
         if total_pages > 1:
             if page > 1:
-                await message.add_reaction("⬅️")
+                view.add_item(discord.ui.Button(label="◀️", style=discord.ButtonStyle.primary, custom_id="previous"))
+            view.add_item(discord.ui.Button(label=f"Page {page}/{total_pages}", style=discord.ButtonStyle.secondary, disabled=True))
             if page < total_pages:
-                await message.add_reaction("➡️")
+                view.add_item(discord.ui.Button(label="▶️", style=discord.ButtonStyle.primary, custom_id="next"))
 
-        def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ["⬅️", "➡️"]
+        await message.edit(embed=embed, view=view)
+
+        def check(interaction):
+            return interaction.user == ctx.author and interaction.message.id == message.id
 
         try:
-            reaction, _ = await bot.wait_for("reaction_add", check=check, timeout=30.0)
-
-            if str(reaction.emoji) == "⬅️" and page > 1:
+            interaction = await bot.wait_for("interaction", check=check, timeout=30.0)
+            if interaction.data["custom_id"] == "previous" and page > 1:
                 page -= 1
-            elif str(reaction.emoji) == "➡️" and page < total_pages:
+            elif interaction.data["custom_id"] == "next" and page < total_pages:
                 page += 1
+
+            await interaction.response.defer()
 
         except asyncio.TimeoutError:
             if prefix:
@@ -225,7 +225,7 @@ def create_embed(script, page, total_pages):
 
     set_image_or_thumbnail(embed, game_image_url)
 
-    embed.set_footer(text=f"Made by AdvanceFalling Team | Page {page}/{total_pages} | Powered by Scriptblox", 
+    embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", #  Page {page}/{total_pages}
                      icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg")
 
     return embed
@@ -249,9 +249,17 @@ def set_image_or_thumbnail(embed, url):
     except Exception as e:
         print(f"Error setting thumbnail URL: {e}")
         embed.set_thumbnail(url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U6yuDVz_6IYqS9cM2oJpGzrM9o-hZT_k21aqQclWBA&s")
-    '''
+'''
+
+async def run_bot():
+    while True:
+        try:
+            await bot.start(TOKEN)
+        except (discord.ConnectionClosed, discord.GatewayNotFound) as e:
+            print(f"Disconnected due to: {e}. Attempting to reconnect...")
+            await asyncio.sleep(5)  # This just waits before attempting to reconnect.
 
 if TOKEN is not None:
-    bot.run(TOKEN)
+    asyncio.run(run_bot())
 else:
     print("Error: Token is None. Please set a valid BOT_TOKEN in your environment.")
