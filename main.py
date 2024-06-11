@@ -1,5 +1,5 @@
-# Last Updated: 2024-06-10
-# Version: 1.7
+# Last Updated: 2024-06-11
+# Version: 1.8
 
 import discord
 from discord.ext import commands
@@ -131,10 +131,11 @@ async def execute_search(ctx, query, mode, prefix):
 
 async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
     while True:
-        embed = create_embed(scripts[page - 1], page, total_pages)
+        script = scripts[page - 1]
+        embed = create_embed(script, page, total_pages)
 
         view = discord.ui.View()
-        
+
         if total_pages > 1:
             if page > 1:
                 view.add_item(discord.ui.Button(label="⏪", style=discord.ButtonStyle.primary, custom_id="first"))
@@ -143,7 +144,10 @@ async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
             if page < total_pages:
                 view.add_item(discord.ui.Button(label="▶️", style=discord.ButtonStyle.primary, custom_id="next"))
                 view.add_item(discord.ui.Button(label="⏩", style=discord.ButtonStyle.primary, custom_id="last"))
-
+            
+            download_url = f"https://scriptblox.com/download/{script['_id']}"
+            view.add_item(discord.ui.Button(label="Download", url=download_url, style=discord.ButtonStyle.link))
+            
         await message.edit(embed=embed, view=view)
 
         def check(interaction):
