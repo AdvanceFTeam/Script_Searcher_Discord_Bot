@@ -148,6 +148,9 @@ async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
             download_url = f"https://scriptblox.com/download/{script['_id']}"
             view.add_item(discord.ui.Button(label="Download", url=download_url, style=discord.ButtonStyle.link))
             
+            post_url = f"https://scriptblox.com/script/{script['slug']}"
+            view.add_item(discord.ui.Button(label="View", url=post_url, style=discord.ButtonStyle.link))
+            
         await message.edit(embed=embed, view=view)
 
         def check(interaction):
