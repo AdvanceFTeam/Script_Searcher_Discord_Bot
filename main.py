@@ -137,10 +137,12 @@ async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
         
         if total_pages > 1:
             if page > 1:
+                view.add_item(discord.ui.Button(label="⏪", style=discord.ButtonStyle.primary, custom_id="first"))
                 view.add_item(discord.ui.Button(label="◀️", style=discord.ButtonStyle.primary, custom_id="previous"))
             view.add_item(discord.ui.Button(label=f"Page {page}/{total_pages}", style=discord.ButtonStyle.secondary, disabled=True))
             if page < total_pages:
                 view.add_item(discord.ui.Button(label="▶️", style=discord.ButtonStyle.primary, custom_id="next"))
+                view.add_item(discord.ui.Button(label="⏩", style=discord.ButtonStyle.primary, custom_id="last"))
 
         await message.edit(embed=embed, view=view)
 
@@ -153,6 +155,10 @@ async def display_scripts(ctx, message, scripts, page, total_pages, prefix):
                 page -= 1
             elif interaction.data["custom_id"] == "next" and page < total_pages:
                 page += 1
+            elif interaction.data["custom_id"] == "last":
+                page = total_pages
+            elif interaction.data["custom_id"] == "first":
+                page = 1
 
             await interaction.response.defer()
 
