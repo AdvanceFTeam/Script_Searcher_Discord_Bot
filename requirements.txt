@@ -4,3 +4,4 @@ python-dotenv
 validators
 python-dateutil
 python-Levenshtein
+pytz
