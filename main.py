@@ -22,7 +22,6 @@ intents.presences = False
 intents.message_content = True
 
 class MyBot(commands.Bot):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.active_searches = {}
@@ -36,12 +35,24 @@ max_content_length = 200
 
 @bot.event
 async def on_ready():
-    activity = discord.Game(name="Script Searcher | /search")
+    activity = discord.Game(name="Script Searcher | /search or !search")
     await bot.change_presence(activity=activity)
     print(f"Bot is ready 🤖 | Serving in {len(bot.guilds)} servers")
 
+@bot.command(name='search')
+async def prefix_search(ctx, *, query=None):
+    if query:
+        await send_api_selection(ctx, query)
+    else:
+        await send_help(ctx)
+
+@bot.command(name='bothelp')
+async def prefix_help(ctx):
+    await send_help(ctx)
+
 class APISelect(discord.ui.Select):
-    def __init__(self):
+    def __init__(self, query):
+        self.query = query
         options = [
             discord.SelectOption(label="ScriptBlox", value="scriptblox", description="Search scripts from ScriptBlox API"),
             discord.SelectOption(label="Rscripts", value="rscripts", description="Search scripts from Rscripts API"),
@@ -50,26 +61,59 @@ class APISelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        query = self.view.query
         if self.values[0] == "scriptblox":
             await interaction.followup.send("Searching ScriptBlox API...")
-            await execute_scriptblox_search(interaction, query)
+            await search_scriptblox(interaction, self.query)
         elif self.values[0] == "rscripts":
             await interaction.followup.send("Searching Rscripts API...")
-            await execute_rscripts_search(interaction, query)
+            await search_rscripts(interaction, self.query)
 
 class APISearchView(discord.ui.View):
     def __init__(self, query):
         super().__init__(timeout=30)
         self.query = query
-        self.add_item(APISelect())
+        self.add_item(APISelect(query))
 
 @bot.tree.command(name="search", description="Search for scripts")
 @app_commands.describe(query="The search query")
-async def slash_search(interaction: discord.Interaction, query: str):
-    await interaction.response.send_message("Select the API to search scripts from:", view=APISearchView(query))
+async def slash_search(interaction: discord.Interaction, query: str = None):
+    if query:
+        await interaction.response.send_message("Select the API to search scripts from:", view=APISearchView(query))
+    else:
+        await send_help(interaction)
 
-async def execute_scriptblox_search(interaction: discord.Interaction, query):
+@bot.tree.command(name="bothelp", description="Display help information")
+async def slash_help(interaction: discord.Interaction):
+    await send_help(interaction)
+
+async def send_help(destination):
+    help_message = (
+        "**Script Searcher Help**\n\n"
+        "Use the following commands to interact with the bot:\n\n"
+        "**Prefix Commands:**\n"
+        "`!search <query>` - Search scripts.\n"
+        "`!bothelp` - Show help.\n\n"
+        "**Slash Commands:**\n"
+        "`/search <query>` - Search scripts.\n"
+        "`/bothelp` - Show help.\n\n"
+        "For example, use `!search Arsenal` or `/search Arsenal` to find scripts related to 'Arsenal'."
+    )
+
+    embed = discord.Embed(title="🔍 Script Search Help", description=help_message, color=0x3498db)
+    embed.set_thumbnail(url="https://media1.tenor.com/m/j9Jhn5M1Xw0AAAAd/neuro-sama-ai.gif")
+    
+    if isinstance(destination, discord.Interaction):
+        await destination.response.send_message(embed=embed, ephemeral=True)
+    else:
+        await destination.send(embed=embed)
+
+async def send_api_selection(destination, query):
+    if isinstance(destination, discord.Interaction):
+        await destination.response.send_message("Select the API to search scripts from:", view=APISearchView(query))
+    else:
+        await destination.send("Select the API to search scripts from:", view=APISearchView(query))
+
+async def search_scriptblox(interaction, query):
     page = 1
     scriptblox_api_url = f"https://scriptblox.com/api/script/search?q={query}&page={page}"
 
@@ -95,7 +139,7 @@ async def execute_scriptblox_search(interaction: discord.Interaction, query):
     except KeyError as ke:
         await interaction.followup.send(f"An error occurred while processing your request. Please try again later. Error: {ke}")
 
-async def execute_rscripts_search(interaction: discord.Interaction, query):
+async def search_rscripts(interaction, query):
     page = 1
     rscripts_api_url = f"https://rscripts.net/api/scripts?q={query}&page={page}"
 
@@ -169,6 +213,7 @@ def create_embed(script, page, total_pages, api):
     embed = discord.Embed(color=0x206694)
     
     if api == "scriptblox":
+        prefix = "[SB]"
         game_name = script.get("game", {}).get("name", "Unknown Game")
         game_id = script.get("game", {}).get("gameId", "")
         title = script.get("title", "No Title")
@@ -192,7 +237,7 @@ def create_embed(script, page, total_pages, api):
         universal_status = "🌐 Universal" if is_universal else "Not Universal"
         truncated_script_content = (script_content[:max_content_length - 3] + "..." if len(script_content) > max_content_length else script_content)
 
-        embed.title = title
+        embed.title = f"{prefix} {title}"
         embed.add_field(name="Game", value=f"[{game_name}](https://www.roblox.com/games/{game_id})", inline=True)
         embed.add_field(name="Verified", value=verified_status, inline=True)
         embed.add_field(name="Script Type", value=paid_or_free, inline=True)
@@ -204,11 +249,11 @@ def create_embed(script, page, total_pages, api):
         embed.add_field(name="The Script", value=f"```lua\n{truncated_script_content}\n```", inline=False)
         embed.add_field(name="Timestamps", value=f"**Created At:** {created_at}\n**Updated At:** {updated_at}", inline=False)
 
-        set_image_or_thumbnail(embed, game_image_url)
-        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", # Page {page}/{total_pages}
-                         icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg")
+        set_img_or_thumb(embed, game_image_url)
+        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg") # Page {page}/{total_pages}
         
     elif api == "rscripts":
+        prefix = "[RS]"
         title = script["title"]
         views = script["views"]
         date = format_datetime(script["date"])
@@ -241,7 +286,7 @@ def create_embed(script, page, total_pages, api):
         else:
             script_text = "⚠️ No script content available."
 
-        embed.title = title
+        embed.title = f"{prefix} {title}"
         embed.add_field(name="Views", value=f"👁️ {views}", inline=True)
         embed.add_field(name="Likes", value=f"👍 {likes}", inline=True)
         embed.add_field(name="Dislikes", value=f"👎 {dislikes}", inline=True)
@@ -256,13 +301,12 @@ def create_embed(script, page, total_pages, api):
         
         embed.set_author(name=f"{user_name}", icon_url=user_avatar_url)
         
-        set_image_or_thumbnail(embed, game_thumbnail)
-        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Rscripts", #Page {page}/{total_pages}
-                         icon_url="https://i.pinimg.com/564x/bf/d3/f6/bfd3f6c59e5af5a52187bf35064b0705.jpg")
+        set_img_or_thumb(embed, game_thumbnail)
+        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Rscripts", icon_url="https://i.pinimg.com/564x/bf/d3/f6/bfd3f6c59e5af5a52187bf35064b0705.jpg") # Page {page}/{total_pages}
 
     return embed
 
-def set_image_or_thumbnail(embed, url):
+def set_img_or_thumb(embed, url):
     try:
         if url and validators.url(url):
             embed.set_image(url=url)
