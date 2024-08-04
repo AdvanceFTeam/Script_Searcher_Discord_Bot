@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/jUKAqr5TZF"><img src="https://img.shields.io/badge/Join-Discord-7289DA?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://discord.gg/aWp6srpg25"><img src="https://img.shields.io/badge/Join-Discord-7289DA?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
 </p> 
 
 ---
