@@ -40,9 +40,9 @@ async def on_ready():
     print(f"Bot is ready 🤖 | Serving in {len(bot.guilds)} servers")
 
 @bot.command(name='search')
-async def prefix_search(ctx, *, query=None):
+async def prefix_search(ctx, query: str = None, mode: str = 'free'):
     if query:
-        await send_api_selection(ctx, query)
+        await send_api_selection(ctx, query, mode)
     else:
         await send_help(ctx)
 
@@ -51,8 +51,9 @@ async def prefix_help(ctx):
     await send_help(ctx)
 
 class APISelect(discord.ui.Select):
-    def __init__(self, query):
+    def __init__(self, query, mode):
         self.query = query
+        self.mode = mode
         options = [
             discord.SelectOption(label="ScriptBlox", value="scriptblox", description="Search scripts from ScriptBlox API"),
             discord.SelectOption(label="Rscripts", value="rscripts", description="Search scripts from Rscripts API"),
@@ -63,24 +64,22 @@ class APISelect(discord.ui.Select):
         await interaction.response.defer(ephemeral=True)
         if self.values[0] == "scriptblox":
             await interaction.followup.send("Searching ScriptBlox API...")
-            await search_scriptblox(interaction, self.query)
+            await search_scriptblox(interaction, self.query, self.mode)
         elif self.values[0] == "rscripts":
             await interaction.followup.send("Searching Rscripts API...")
-            await search_rscripts(interaction, self.query)
+            await search_rscripts(interaction, self.query, self.mode)
 
 class APISearchView(discord.ui.View):
-    def __init__(self, query):
+    def __init__(self, query, mode):
         super().__init__(timeout=30)
         self.query = query
-        self.add_item(APISelect(query))
+        self.mode = mode
+        self.add_item(APISelect(query, mode))
 
 @bot.tree.command(name="search", description="Search for scripts")
-@app_commands.describe(query="The search query")
-async def slash_search(interaction: discord.Interaction, query: str = None):
-    if query:
-        await interaction.response.send_message("Select the API to search scripts from:", view=APISearchView(query))
-    else:
-        await send_help(interaction)
+@app_commands.describe(query="The search query", mode="Search mode (free or paid)")
+async def slash_search(interaction: discord.Interaction, query: str, mode: str = 'free'):
+    await interaction.response.send_message("Select the API to search scripts from:", view=APISearchView(query, mode))
 
 @bot.tree.command(name="bothelp", description="Display help information")
 async def slash_help(interaction: discord.Interaction):
@@ -89,14 +88,15 @@ async def slash_help(interaction: discord.Interaction):
 async def send_help(destination):
     help_message = (
         "**Script Searcher Help**\n\n"
-        "Use the following commands to interact with the bot:\n\n"
+        "Use these commands to interact with the bot:\n\n"
         "**Prefix Commands:**\n"
-        "`!search <query>` - Search scripts.\n"
+        "`!search <query> [mode]` - Search scripts. Example: `!search arsenal paid`.\n"
         "`!bothelp` - Show help.\n\n"
         "**Slash Commands:**\n"
-        "`/search <query>` - Search scripts.\n"
+        "`/search <query> [mode]` - Search scripts. Example: `/search arsenal paid`.\n"
         "`/bothelp` - Show help.\n\n"
-        "For example, use `!search Arsenal` or `/search Arsenal` to find scripts related to 'Arsenal'."
+        "Modes: `free`, `paid`\n"
+        "Default mode is `free`."
     )
 
     embed = discord.Embed(title="🔍 Script Search Help", description=help_message, color=0x3498db)
@@ -107,15 +107,15 @@ async def send_help(destination):
     else:
         await destination.send(embed=embed)
 
-async def send_api_selection(destination, query):
+async def send_api_selection(destination, query, mode):
     if isinstance(destination, discord.Interaction):
-        await destination.response.send_message("Select the API to search scripts from:", view=APISearchView(query))
+        await destination.response.send_message("Select the API to search scripts from:", view=APISearchView(query, mode))
     else:
-        await destination.send("Select the API to search scripts from:", view=APISearchView(query))
+        await destination.send("Select the API to search scripts from:", view=APISearchView(query, mode))
 
-async def search_scriptblox(interaction, query):
+async def search_scriptblox(interaction, query, mode):
     page = 1
-    scriptblox_api_url = f"https://scriptblox.com/api/script/search?q={query}&page={page}"
+    scriptblox_api_url = f"https://scriptblox.com/api/script/search?q={query}&mode={mode}&page={page}"
 
     try:
         scriptblox_response = requests.get(scriptblox_api_url)
@@ -126,22 +126,23 @@ async def search_scriptblox(interaction, query):
             scripts = scriptblox_data["result"]["scripts"]
 
             if not scripts:
-                await interaction.followup.send(f"No scripts found for: `{query}`")
+                await interaction.followup.send(f"No scripts found for: `{query}` in mode `{mode}`.")
                 return
 
             message = await interaction.followup.send("Fetching data...")
             await display_scripts(interaction, message, scripts, page, scriptblox_data["result"]["totalPages"], api="scriptblox")
         else:
-            await interaction.followup.send(f"No scripts found for: `{query}`")
+            await interaction.followup.send(f"No scripts found for: `{query}` in mode `{mode}`.")
 
     except requests.RequestException as e:
         await interaction.followup.send(f"An error occurred: {e}")
     except KeyError as ke:
         await interaction.followup.send(f"An error occurred while processing your request. Please try again later. Error: {ke}")
 
-async def search_rscripts(interaction, query):
+async def search_rscripts(interaction, query, mode):
     page = 1
-    rscripts_api_url = f"https://rscripts.net/api/scripts?q={query}&page={page}"
+    not_paid = "false" if mode == "paid" else "true"
+    rscripts_api_url = f"https://rscripts.net/api/scripts?q={query}&page={page}&notPaid={not_paid}"
 
     try:
         rscripts_response = requests.get(rscripts_api_url)
@@ -152,13 +153,13 @@ async def search_rscripts(interaction, query):
             scripts = rscripts_data["scripts"]
 
             if not scripts:
-                await interaction.followup.send(f"No scripts found for: `{query}`")
+                await interaction.followup.send(f"No scripts found for: `{query}` in mode `{mode}`.")
                 return
 
             message = await interaction.followup.send("Fetching data...")
             await display_scripts(interaction, message, scripts, page, rscripts_data["info"]["maxPages"], api="rscripts")
         else:
-            await interaction.followup.send(f"No scripts found for: `{query}`")
+            await interaction.followup.send(f"No scripts found for: `{query}` in mode `{mode}`.")
 
     except requests.RequestException as e:
         await interaction.followup.send(f"An error occurred: {e}")
