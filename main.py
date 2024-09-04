@@ -1,5 +1,5 @@
-# Last Updated: 2024-08-04
-# Version: 2.0
+# Last Updated: 2024-09-04
+# Version: 2.1
 
 import discord
 from discord.ext import commands
@@ -101,7 +101,7 @@ async def send_help(destination):
 
     embed = discord.Embed(title="🔍 Script Search Help", description=help_message, color=0x3498db)
     embed.set_thumbnail(url="https://media1.tenor.com/m/j9Jhn5M1Xw0AAAAd/neuro-sama-ai.gif")
-    
+
     if isinstance(destination, discord.Interaction):
         await destination.response.send_message(embed=embed, ephemeral=True)
     else:
@@ -188,6 +188,17 @@ async def display_scripts(interaction, message, scripts, page, total_pages, api)
             view.add_item(discord.ui.Button(label="Download", url=download_url, style=discord.ButtonStyle.link))
             view.add_item(discord.ui.Button(label="View", url=post_url, style=discord.ButtonStyle.link))
 
+            copybtn = discord.ui.Button(label="Copy Script", style=discord.ButtonStyle.primary)
+
+            async def cbc(interaction):
+                await interaction.response.send_message(
+                    f"```lua\n{script['script']}\n```", 
+                    ephemeral=True 
+                )
+
+            copybtn.callback = cbc 
+            view.add_item(copybtn) 
+
         await message.edit(embed=embed, view=view)
 
         def check(i):
@@ -209,10 +220,11 @@ async def display_scripts(interaction, message, scripts, page, total_pages, api)
         except asyncio.TimeoutError:
             await message.edit(content="Interaction timed out.", view=None)
             break
-        
+
+
 def create_embed(script, page, total_pages, api):
     embed = discord.Embed(color=0x206694)
-    
+
     if api == "scriptblox":
         prefix = "[SB]"
         game_name = script.get("game", {}).get("name", "Unknown Game")
@@ -252,7 +264,7 @@ def create_embed(script, page, total_pages, api):
 
         set_img_or_thumb(embed, game_image_url)
         embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg") # Page {page}/{total_pages}
-        
+
     elif api == "rscripts":
         prefix = "[RS]"
         title = script["title"]
@@ -272,7 +284,7 @@ def create_embed(script, page, total_pages, api):
         user = script.get("user", [{}])[0]
         user_name = user.get("username", "Unknown")
         user_image = user.get("image", None)
-        
+
         if user_image:
             user_avatar_url = f"https://rscripts.net/assets/avatars/{user_image}"
         else:
@@ -281,7 +293,7 @@ def create_embed(script, page, total_pages, api):
         key_status = f"[Key Link]({key_link})" if has_key and key_link else "✅ No Key"
         mobile_status = "📱 Mobile Ready" if mobile_ready else "🚫 Not Mobile Ready"
         paid_or_free = "Free" if not paid else "💲 Paid"
-        
+
         if script_content:
             script_text = f"```lua\nloadstring(game:HttpGet(\"https://rscripts.net/raw/{script_content}\"))()\n```"
         else:
@@ -299,9 +311,9 @@ def create_embed(script, page, total_pages, api):
         embed.add_field(name="The Script", value=script_text, inline=False)
         embed.add_field(name="Links", value=f"[Script Page](https://rscripts.net/script/{slug})", inline=False)
         embed.add_field(name="Date", value=date, inline=True)
-        
+
         embed.set_author(name=f"{user_name}", icon_url=user_avatar_url)
-        
+
         set_img_or_thumb(embed, game_thumbnail)
         embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Rscripts", icon_url="https://i.pinimg.com/564x/bf/d3/f6/bfd3f6c59e5af5a52187bf35064b0705.jpg") # Page {page}/{total_pages}
 
@@ -322,7 +334,7 @@ def format_datetime(dt_str):
         dt = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
     except ValueError:
         dt = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    
+
     now = datetime.now(timezone.utc)
     delta = relativedelta(now, dt)
 
