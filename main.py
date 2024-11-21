@@ -1,5 +1,5 @@
-# Last Updated: 2024-09-04
-# Version: 2.1
+# Last Updated: 2024-11-20
+# Version: 2.2
 
 import discord
 from discord.ext import commands
@@ -224,31 +224,32 @@ async def display_scripts(interaction, message, scripts, page, total_pages, api)
 
 def create_embed(script, page, total_pages, api):
     embed = discord.Embed(color=0x206694)
+    prefix, footer_icon, powered_by = "", "", ""
 
     if api == "scriptblox":
         prefix = "[SB]"
-        game_name = script.get("game", {}).get("name", "Unknown Game")
-        game_id = script.get("game", {}).get("gameId", "")
+        footer_icon = "https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg"
+        powered_by = "Scriptblox"
+
+        game = script.get("game", {})
+        game_name = game.get("name", "Unknown Game")
+        game_id = game.get("gameId", "")
+        game_image_url = "https://scriptblox.com" + game.get("imageUrl", "")
         title = script.get("title", "No Title")
-        script_type = script.get("scriptType", "unknown")
         script_content = script.get("script", "")
         views = script.get("views", 0)
-        verified = script.get("verified", False)
-        has_key = script.get("key", False)
-        key_link = script.get("keyLink", "")
-        is_patched = script.get("isPatched", False)
-        is_universal = script.get("isUniversal", False)
-        created_at = format_datetime(script.get("createdAt", ""))
-        updated_at = format_datetime(script.get("updatedAt", ""))
-        game_image_url = "https://scriptblox.com" + script.get("game", {}).get("imageUrl", "")
+        script_type = script.get("scriptType", "unknown")
         slug = script.get("slug", "")
-
+        
+        # Status Strings
+        verified_status = "✅ Verified" if script.get("verified", False) else "❌ Not Verified"
+        key_status = f"[Key Link]({script.get('keyLink', '')})" if script.get("key", False) else "✅ No Key"
+        patched_status = "❌ Patched" if script.get("isPatched", False) else "✅ Not Patched"
+        universal_status = "🌐 Universal" if script.get("isUniversal", False) else "Not Universal"
         paid_or_free = "Free" if script_type == "free" else "💲 Paid"
-        verified_status = "✅ Verified" if verified else "❌ Not Verified"
-        key_status = f"[Key Link]({key_link})" if has_key and key_link else "✅ No Key"
-        patched_status = "❌ Patched" if is_patched else "✅ Not Patched"
-        universal_status = "🌐 Universal" if is_universal else "Not Universal"
-        truncated_script_content = (script_content[:max_content_length - 3] + "..." if len(script_content) > max_content_length else script_content)
+
+        # Script
+        truncated_script = the_script(script_content)
 
         embed.title = f"{prefix} {title}"
         embed.add_field(name="Game", value=f"[{game_name}](https://www.roblox.com/games/{game_id})", inline=True)
@@ -259,65 +260,64 @@ def create_embed(script, page, total_pages, api):
         embed.add_field(name="Key", value=key_status, inline=True)
         embed.add_field(name="Patched", value=patched_status, inline=True)
         embed.add_field(name="Links", value=f"[Raw Script](https://rawscripts.net/raw/{slug}) - [Script Page](https://scriptblox.com/script/{slug})", inline=False)
-        embed.add_field(name="The Script", value=f"```lua\n{truncated_script_content}\n```", inline=False)
-        embed.add_field(name="Timestamps", value=f"**Created At:** {created_at}\n**Updated At:** {updated_at}", inline=False)
+        embed.add_field(name="The Script", value=f"```lua\n{truncated_script}\n```", inline=False)
+        embed.add_field(name="Timestamps", value=timestamps(script), inline=False)
 
         set_img_or_thumb(embed, game_image_url)
-        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg") # Page {page}/{total_pages}
+        # embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Scriptblox", icon_url="https://img.getimg.ai/generated/img-u1vYyfAtK7GTe9OK1BzeH.jpeg") # Page {page}/{total_pages}
 
     elif api == "rscripts":
         prefix = "[RS]"
-        title = script["title"]
-        views = script["views"]
-        date = format_datetime(script["date"])
+        footer_icon = "https://i.pinimg.com/564x/bf/d3/f6/bfd3f6c59e5af5a52187bf35064b0705.jpg"
+        powered_by = "Rscripts"
+
+        title = script.get("title", "No Title")
+        slug = script.get("slug", "")
+        views = script.get("views", 0)
         likes = script.get("likes", 0)
         dislikes = script.get("dislikes", 0)
-        game_thumbnail = script.get("gameThumbnail", "")
-        slug = script.get("slug", "")
-        script_content = script.get("download", "")
-        has_key = script.get("keySystem", False)
-        key_link = script.get("key_link", "")
-        mobile_ready = script.get("mobileReady", False)
-        paid = script.get("paid", False)
+        date = format_datetime(script.get("date", ""))
+        mobile_ready = "📱 Mobile Ready" if script.get("mobileReady", False) else "🚫 Not Mobile Ready"
+        verified_status = "✅ Verified" if script.get("verified", False) else "❌ Not Verified"
         patched_status = "❌ Patched" if script.get("patched", False) else "✅ Not Patched"
-        verified = script.get("verified", False)
+        script_content = script.get("download", "")
+
+        # User Info
         user = script.get("user", [{}])[0]
         user_name = user.get("username", "Unknown")
-        user_image = user.get("image", None)
+        user_avatar_url = f"https://rscripts.net/assets/avatars/{user.get('image', 'default.png')}"
 
-        if user_image:
-            user_avatar_url = f"https://rscripts.net/assets/avatars/{user_image}"
-        else:
-            user_avatar_url = "https://i.pravatar.cc/300"
-
-        key_status = f"[Key Link]({key_link})" if has_key and key_link else "✅ No Key"
-        mobile_status = "📱 Mobile Ready" if mobile_ready else "🚫 Not Mobile Ready"
-        paid_or_free = "Free" if not paid else "💲 Paid"
-
-        if script_content:
-            script_text = f"```lua\nloadstring(game:HttpGet(\"https://rscripts.net/raw/{script_content}\"))()\n```"
-        else:
-            script_text = "⚠️ No script content available."
+        # Script
+        script_text = f"```lua\nloadstring(game:HttpGet(\"https://rscripts.net/raw/{script_content}\"))()\n```" if script_content else "⚠️ No script content available."
 
         embed.title = f"{prefix} {title}"
         embed.add_field(name="Views", value=f"👁️ {views}", inline=True)
         embed.add_field(name="Likes", value=f"👍 {likes}", inline=True)
         embed.add_field(name="Dislikes", value=f"👎 {dislikes}", inline=True)
-        embed.add_field(name="Script Type", value=paid_or_free, inline=True)
-        embed.add_field(name="Mobile", value=mobile_status, inline=True)
-        embed.add_field(name="Key", value=key_status, inline=True)
+        embed.add_field(name="Mobile", value=mobile_ready, inline=True)
+        embed.add_field(name="Verified", value=verified_status, inline=True)
         embed.add_field(name="Patched", value=patched_status, inline=True)
-        embed.add_field(name="Verified", value="✅ Verified" if verified else "❌ Not Verified", inline=True)
         embed.add_field(name="The Script", value=script_text, inline=False)
         embed.add_field(name="Links", value=f"[Script Page](https://rscripts.net/script/{slug})", inline=False)
         embed.add_field(name="Date", value=date, inline=True)
 
-        embed.set_author(name=f"{user_name}", icon_url=user_avatar_url)
+        embed.set_author(name=user_name, icon_url=user_avatar_url)
 
-        set_img_or_thumb(embed, game_thumbnail)
-        embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by Rscripts", icon_url="https://i.pinimg.com/564x/bf/d3/f6/bfd3f6c59e5af5a52187bf35064b0705.jpg") # Page {page}/{total_pages}
-
+    embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by {powered_by}", icon_url=footer_icon)
     return embed
+
+# dont ask
+def the_script(script_content, max_length=400):
+    if len(script_content) > max_length:
+        return script_content[:max_length - 3] + "..."
+    return script_content
+
+# formatting...
+def timestamps(script):
+    created_at = format_datetime(script.get("createdAt", ""))
+    updated_at = format_datetime(script.get("updatedAt", ""))
+    return f"**Created At:** {created_at}\n**Updated At:** {updated_at}"
+
 
 def set_img_or_thumb(embed, url):
     try:
@@ -365,4 +365,4 @@ async def run_bot():
 if TOKEN:
     asyncio.run(run_bot())
 else:
-    print("Error: Token is None. Please set a valid BOT_TOKEN in your environment.")
+    print("Error: Token is None. Please set your BOT_TOKEN in your environment(.env).")
