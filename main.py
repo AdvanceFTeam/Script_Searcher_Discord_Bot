@@ -40,7 +40,11 @@ def fetch_scripts(api, query, mode, page):
             params = {"q": query, "script name": query, "mode": mode, "page": page}
             query_string = urllib.parse.urlencode(params, safe=' ')
             url = f"https://scriptblox.com/api/script/search?{query_string}"
-            r = requests.get(url)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+            }
+            r = requests.get(url, headers=headers)
+            # r = requests.get(url)
             r.raise_for_status()
             data = r.json()
             if "result" in data and "scripts" in data["result"]:
