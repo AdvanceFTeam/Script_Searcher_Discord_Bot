@@ -12,13 +12,15 @@
 
 This Discord bot allows users to search for scripts using the `!search` command or the slash command `/search` followed by a query. Users can specify the search mode as `free` or `paid`. The bot retrieves script information from the [ScriptBlox API](https://github.com/DocsGuy/Unoffical-Scriptblox-api-docs) and [Rscripts API](https://api.rscripts.net/) and displays the results.
 
-## Feature Plan
+## Future Plans
 
 - ~~Some Rewrite on the code to fix some issues & bugs.~~
 - ~~Fix The `First` & `Last` Button Page (I don't know why this is still not being fix or work on).~~
 - ~~Fix The page or total page~~
+- ~~Change to the new scriptblox API update~~
 - Add New Commands that use the `Scriptblox` & `Rscripts` API.
 - Rewrite to make a JavaScript Script Searcher Bot. (Failed many times on this, that's why this was written in Python and not Javascript).
+
 - ETC.
 
 ## Features
