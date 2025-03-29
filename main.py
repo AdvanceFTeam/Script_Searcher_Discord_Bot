@@ -108,7 +108,8 @@ def create_embed(script, page, total_items, api):
         if game_id:
             game_link = f"https://www.roblox.com/games/{game_id}"
         else:
-            game_link = "https://www.roblox.com"        script_image = script.get("image", FALLBACK_IMAGE)
+            game_link = "https://www.roblox.com"        
+        script_image = script.get("image", FALLBACK_IMAGE)
         views = script.get("views", 0)
         script_type = "Free" if script.get("scriptType", "free").lower() == "free" else "Paid"
         verified_status = "✅ Verified" if script.get("verified", False) else "❌ Not Verified"
