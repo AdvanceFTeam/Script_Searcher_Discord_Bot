@@ -1,5 +1,5 @@
-# Last Updated: 2025-02-11
-# Version: 2.4
+# Last Updated: 2025-03-29
+# Version: 2.5
 
 import discord
 from discord.ext import commands
@@ -37,8 +37,8 @@ async def on_ready():
 def fetch_scripts(api, query, mode, page):
     try:
         if api == "scriptblox":
-            params = {"q": query, "script name": query, "mode": mode, "page": page}
-            query_string = urllib.parse.urlencode(params, safe=' ')
+            params = {"q": query, "mode": mode, "page": page}
+            query_string = urllib.parse.urlencode(params)
             url = f"https://scriptblox.com/api/script/search?{query_string}"
             r = requests.get(url)
             r.raise_for_status()
@@ -66,6 +66,7 @@ def fetch_scripts(api, query, mode, page):
         return None, None, f"Error occurred: {e}"
     except KeyError as ke:
         return None, None, f"Error processing data: {ke}"
+    
 
 def format_datetime(dt_str):
     try:
@@ -104,7 +105,10 @@ def create_embed(script, page, total_items, api):
         game = script.get("game", {})
         game_name = game.get("name", "Unknown Game")
         game_id = game.get("gameId", "")
-        game_image_url = f"https://scriptblox.com{game.get('imageUrl', '')}" if game.get('imageUrl') else FALLBACK_IMAGE
+        if game_id:
+            game_link = f"https://www.roblox.com/games/{game_id}"
+        else:
+            game_link = "https://www.roblox.com"        script_image = script.get("image", FALLBACK_IMAGE)
         views = script.get("views", 0)
         script_type = "Free" if script.get("scriptType", "free").lower() == "free" else "Paid"
         verified_status = "✅ Verified" if script.get("verified", False) else "❌ Not Verified"
@@ -114,7 +118,7 @@ def create_embed(script, page, total_items, api):
         truncated_script = script.get("script", "No Script")
         if len(truncated_script) > 400:
             truncated_script = truncated_script[:397] + "..."
-        embed.add_field(name="Game", value=f"[{game_name}](https://www.roblox.com/games/{game_id})", inline=True)
+        embed.add_field(name="Game", value=f"[{game_name}]({game_link})", inline=True)
         embed.add_field(name="Verified", value=verified_status, inline=True)
         embed.add_field(name="Type", value=script_type, inline=True)
         embed.add_field(name="Universal", value=universal_status, inline=True)
@@ -124,8 +128,8 @@ def create_embed(script, page, total_items, api):
         embed.add_field(name="Links", value=f"[Raw Script](https://rawscripts.net/raw/{script.get('slug','')}) - [Script Page](https://scriptblox.com/script/{script.get('slug','')})", inline=False)
         embed.add_field(name="Script", value=f"```lua\n{truncated_script}\n```", inline=False)
         embed.add_field(name="Timestamps", value=format_timestamps(script), inline=False)
-        if validators.url(game_image_url):
-            embed.set_image(url=game_image_url)
+        if validators.url(script_image):
+            embed.set_image(url=script_image)
         else:
             embed.set_image(url=FALLBACK_IMAGE)
     elif api == "rscripts":
@@ -158,7 +162,7 @@ def create_embed(script, page, total_items, api):
             embed.set_image(url=image_url)
         else:
             embed.set_image(url=FALLBACK_IMAGE)
-    embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by {'Scriptblox' if api=='scriptblox' else 'Rscripts'} | Page {page}/{total_items}")
+    embed.set_footer(text=f"Made by AdvanceFalling Team | Powered by {'ScriptBlox' if api=='scriptblox' else 'RScripts'} | Page {page}/{total_items}")
     return embed
 
 async def display_scripts_dynamic(interaction, message, query, mode, api):
