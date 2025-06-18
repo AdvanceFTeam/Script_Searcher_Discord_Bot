@@ -19,7 +19,7 @@ This Discord bot allows users to search for scripts using the `!search` command 
 - ~~Fix The page or total page~~
 - ~~Change to the new scriptblox API update~~
 - Add New Commands that use the `Scriptblox` & `Rscripts` API.
-- Rewrite to make a JavaScript Script Searcher Bot. (Failed many times on this, that's why this was written in Python and not Javascript).
+- ~~Rewrite to make a JavaScript Script Searcher Bot. (Failed many times on this, that's why this was written in Python and not Javascript).~~
 
 - ETC.
 
