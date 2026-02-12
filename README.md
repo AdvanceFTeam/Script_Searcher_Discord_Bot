@@ -44,12 +44,10 @@ This Discord bot allows users to search for scripts using the `!search` command 
 4. **Run the Bot**: `python main.py`
 
 ## Requirements
-
-- Python 3.7+
-- discord.py
-- requests
-- validators
-- dotenv
+- in `requirements.txt` and just do:
+```
+pip install -r requirements.txt
+```
 
 ## Replit
 
